@@ -1,1 +1,1 @@
-"# Conceptual-Captions-Challenge" 
+# Conceptual-Captions-Challenge
