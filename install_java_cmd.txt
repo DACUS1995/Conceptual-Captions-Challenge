@@ -1,0 +1,6 @@
+import os       #importing os to set environment variable
+def install_java():
+  !apt-get install -y openjdk-8-jdk-headless -qq > /dev/null      #install openjdk
+  os.environ["JAVA_HOME"] = "/usr/lib/jvm/java-8-openjdk-amd64"     #set environment variable
+  !java -version       #check java version
+install_java()

@@ -4,3 +4,4 @@ val
 train_cache
 val_cache
 *.pyc
+tmp*

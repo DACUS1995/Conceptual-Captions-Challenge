@@ -174,7 +174,7 @@ def create_fragment_record(features, captions, tfrecord_path):
 			writer.write(tf_example.SerializeToString())
 	
 	
-def cache_features(img_paths, captions_vector, cache_folder, batch_size=64, batches_per_file=4):
+def cache_features(img_paths, captions_vector, cache_folder, batch_size=32, batches_per_file=4):
 	start = time.time()
   
 	image_ds = tf.data.Dataset.from_tensor_slices(img_paths)
