@@ -6,3 +6,4 @@ val_cache
 *.pyc
 tmp*
 pycocoevalcap/spice/lib/
+*.bak
