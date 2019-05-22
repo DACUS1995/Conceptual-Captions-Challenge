@@ -50,17 +50,17 @@ class Spice:
         temp_dir=os.path.join(cwd, TEMP_DIR)
         if not os.path.exists(temp_dir):
           os.makedirs(temp_dir)
-        in_file = tempfile.NamedTemporaryFile(delete=False, dir=temp_dir)
+        in_file = tempfile.NamedTemporaryFile(delete=False, dir=temp_dir, mode='w')
         json.dump(input_data, in_file, indent=2)
         in_file.close()
 
         # Start job
-        out_file = tempfile.NamedTemporaryFile(delete=False, dir=temp_dir)
+        out_file = tempfile.NamedTemporaryFile(delete=False, dir=temp_dir, mode='w')
         out_file.close()
         cache_dir=os.path.join(cwd, CACHE_DIR)
         if not os.path.exists(cache_dir):
           os.makedirs(cache_dir)
-        spice_cmd = ['java', '-jar', '-Xmx8G', SPICE_JAR, in_file.name,
+        spice_cmd = ['java', '-Djava.library.path=D:\\Workspace\\Projects\\Conceptual-Captions-Challenge\\pycocoevalcap\\spice\\lib','-jar', '-Xmx1G', SPICE_JAR, in_file.name,
           '-cache', cache_dir,
           '-out', out_file.name,
           '-subset',
