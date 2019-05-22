@@ -1,6 +1,5 @@
 import tensorflow as tf
 
-
 """## Model
 
 Fun fact, the decoder below is identical to the one in the example for [Neural Machine Translation with Attention](../sequences/nmt_with_attention.ipynb).
@@ -12,6 +11,7 @@ The model architecture is inspired by the [Show, Attend and Tell](https://arxiv.
 * This vector is then passed through the CNN Encoder(which consists of a single Fully connected layer).
 * The RNN(here GRU) attends over the image to predict the next word.
 """
+
 
 class BahdanauAttention(tf.keras.Model):
 	def __init__(self, units):
@@ -42,7 +42,6 @@ class BahdanauAttention(tf.keras.Model):
 
 
 class CNN_Encoder(tf.keras.Model):
-	name="nume"
 	# Since we have already extracted the features and dumped it using pickle
 	# This encoder passes those features through a Fully connected layer
 	def __init__(self, embedding_dim):
@@ -60,9 +59,11 @@ class RNN_Decoder(tf.keras.Model):
 	def __init__(self, embedding_dim, units, vocab_size):
 		super(RNN_Decoder, self).__init__()
 		self.units = units
-
 		self.embedding = tf.keras.layers.Embedding(vocab_size, embedding_dim)
-		self.gru = tf.keras.layers.GRU(self.units, return_sequences=True, return_state=True, recurrent_initializer='glorot_uniform')
+		self.gru = tf.keras.layers.GRU(self.units,
+									   return_sequences=True,
+									   return_state=True,
+									   recurrent_initializer='glorot_uniform')
 		self.fc1 = tf.keras.layers.Dense(self.units)
 		self.fc2 = tf.keras.layers.Dense(vocab_size)
 
@@ -71,23 +72,21 @@ class RNN_Decoder(tf.keras.Model):
 	def call(self, x, features, hidden):
 		# defining attention as a separate model
 		context_vector, attention_weights = self.attention(features, hidden)
-
 		# x shape after passing through embedding == (batch_size, 1, embedding_dim)
-		x = self.embedding(x)
 
+		x = self.embedding(x)
 		# x shape after concatenation == (batch_size, 1, embedding_dim + hidden_size)
 		x = tf.concat([tf.expand_dims(context_vector, 1), x], axis=-1)
-
 		# passing the concatenated vector to the GRU
 		output, state = self.gru(x)
 
-		# shape == (batch_size, max_length, hidden_size)
+		# shape == (batch_size, 1, hidden_size)
 		x = self.fc1(output)
 
-		# x shape == (batch_size * max_length, hidden_size)
+		# x shape == (batch_size, hidden_size)
 		x = tf.reshape(x, (-1, x.shape[2]))
 
-		# output shape == (batch_size * max_length, vocab)
+		# output shape == (batch_size, vocab)
 		x = self.fc2(x)
 
 		return x, state, attention_weights
