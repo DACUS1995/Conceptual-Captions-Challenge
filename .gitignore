@@ -5,5 +5,5 @@ train_cache
 val_cache
 *.pyc
 tmp*
-pycocoevalcap/spice/lib/
+# pycocoevalcap/spice/lib/
 *.bak
