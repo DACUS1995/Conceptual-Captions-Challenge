@@ -102,7 +102,7 @@ class AttentionDecoderEncoder():
 		self.encoder = CNN_Encoder(embedding_dim)
 		self.decoder = RNN_Decoder(embedding_dim, units, vocabulary_size)
 		self.start_token = start_token
-		self.batchsize = batch_size
+		self.batch_size = batch_size
 
 		self.optimizer = tf.keras.optimizers.Adam()
 		self.loss_object = tf.keras.losses.SparseCategoricalCrossentropy(
@@ -133,7 +133,7 @@ class AttentionDecoderEncoder():
 
 		# initializing the hidden state for each batch
 		# because the captions are not related from image to image
-		hidden = self.decoder.reset_state(batch_size=target.shape[0])
+		hidden = self.decoder.reset_state(self.batch_size)
 
 		batch_size = img_tensor.shape[0]
 
