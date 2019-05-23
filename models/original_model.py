@@ -98,7 +98,7 @@ class RNN_Decoder(tf.keras.Model):
 
 
 class AttentionDecoderEncoder():
-	def __init__(self, embedding_dim, units, vocabulary_size, start_token, batch_size):
+	def __init__(self, embedding_dim, units, vocabulary_size, start_token, batch_size, max_train_len, max_val_len):
 		self.encoder = CNN_Encoder(embedding_dim)
 		self.decoder = RNN_Decoder(embedding_dim, units, vocabulary_size)
 		self.start_token = start_token
@@ -107,6 +107,8 @@ class AttentionDecoderEncoder():
 		self.optimizer = tf.keras.optimizers.Adam()
 		self.loss_object = tf.keras.losses.SparseCategoricalCrossentropy(
 			from_logits=True, reduction='none')
+		self.max_train_len = max_train_len
+		self.max_val_len = max_val_len
 
 	def get_ckpt_config(self):
 		ckpt = tf.train.Checkpoint(encoder=self.encoder,
@@ -141,7 +143,7 @@ class AttentionDecoderEncoder():
 		with tf.GradientTape() as tape:
 			features = self.encoder(img_tensor)
 
-			for i in range(1, target.shape[1]):
+			for i in range(1, self.max_train_len):
 				# passing the features through the decoder
 				predictions, hidden, _ = self.decoder(dec_input, features, hidden)
 
@@ -170,7 +172,7 @@ class AttentionDecoderEncoder():
 
 		features = self.encoder(img_tensor)
 
-		for i in range(1, target.shape[1]):
+		for i in range(1, self.max_val_len):
 			# passing the features through the decoder
 			predictions, hidden, _ = self.decoder(dec_input, features, hidden)
 
