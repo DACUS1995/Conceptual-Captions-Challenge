@@ -3,9 +3,6 @@ import numpy as np
 from utils import *
 
 """## Model
-
-Fun fact, the decoder below is identical to the one in the example for [Neural Machine Translation with Attention](../sequences/nmt_with_attention.ipynb).
-
 The model architecture is inspired by the [Show, Attend and Tell](https://arxiv.org/pdf/1502.03044.pdf) paper.
 
 * In this example, we extract the features from the lower convolutional layer of InceptionV3 giving us a vector of shape (8, 8, 2048).
@@ -97,7 +94,7 @@ class RNN_Decoder(tf.keras.Model):
 		return tf.zeros((batch_size, self.units))
 
 
-class AttentionDecoderEncoder():
+class AttentionEncoderDecoder():
 	def __init__(self, embedding_dim, units, vocabulary_size, start_token, batch_size, max_train_len, max_val_len):
 		self.encoder = CNN_Encoder(embedding_dim)
 		self.decoder = RNN_Decoder(embedding_dim, units, vocabulary_size)
