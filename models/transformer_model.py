@@ -2,6 +2,7 @@ import tensorflow as tf
 import numpy as np
 from utils import *
 
+
 def get_angles(pos, i, d_model):
     angle_rates = 1 / np.power(10000, (2 * (i // 2)) / np.float32(d_model))
     return pos * angle_rates
@@ -342,21 +343,21 @@ class CustomSchedule(tf.keras.optimizers.schedules.LearningRateSchedule):
 
 class TransformerWrapper():
     def __init__(self, num_layers, d_model, num_heads, dff,
-                max_len_input, target_vocab_size, dropout_rate, max_train_len, max_val_len,
+                 max_len_input, target_vocab_size, dropout_rate, max_train_len, max_val_len,
                  ):
         self.transformer = Transformer(num_layers, d_model, num_heads, dff,
-                          max_len_input, target_vocab_size, dropout_rate)
+                                       max_len_input, target_vocab_size, dropout_rate)
         learning_rate = CustomSchedule(d_model)
         self.optimizer = tf.keras.optimizers.Adam(learning_rate, beta_1=0.9, beta_2=0.98,
-                                     epsilon=1e-9)
+                                                  epsilon=1e-9)
         self.loss_object = tf.keras.losses.SparseCategoricalCrossentropy(
-                from_logits=True, reduction='none')
+            from_logits=True, reduction='none')
         self.max_train_len = max_train_len
         self.max_val_len = max_val_len
 
     def get_ckpt_config(self):
         ckpt = tf.train.Checkpoint(transformer=self.transformer,
-                           optimizer=self.optimizer)
+                                   optimizer=self.optimizer)
         return ckpt
 
     def get_valid_mask(self, real):
@@ -396,10 +397,10 @@ class TransformerWrapper():
         mask = self.get_valid_mask(tar_real)
         with tf.GradientTape() as tape:
             predictions, _ = self.transformer(inp, tar_inp,
-                                         True,
-                                         None,
-                                         combined_mask,
-                                         None)
+                                              True,
+                                              None,
+                                              combined_mask,
+                                              None)
             loss = self.loss_function(tar_real, predictions, mask)
 
         gradients = tape.gradient(loss, self.transformer.trainable_variables)
@@ -420,10 +421,10 @@ class TransformerWrapper():
 
         mask = self.get_valid_mask(tar_real)
         predictions, _ = self.transformer(inp, tar_inp,
-                                     True,
-                                     None,
-                                     combined_mask,
-                                     None)
+                                          True,
+                                          None,
+                                          combined_mask,
+                                          None)
         loss = self.loss_function(tar_real, predictions, mask)
 
         metrics['loss'](loss)
@@ -444,11 +445,11 @@ class TransformerWrapper():
                 encoder_input, output)
             # predictions.shape == (batch_size, seq_len, vocab_size)
             predictions, attention_weights = self.transformer(encoder_input,
-                                                         output,
-                                                         False,
-                                                         None,
-                                                         combined_mask,
-                                                         None)
+                                                              output,
+                                                              False,
+                                                              None,
+                                                              combined_mask,
+                                                              None)
 
             # select the last word from the seq_len dimension
             predictions = predictions[:, -1:, :]  # (batch_size, 1, vocab_size)
