@@ -94,7 +94,7 @@ class RNN_Decoder(tf.keras.Model):
 		return tf.zeros((batch_size, self.units))
 
 
-class AttentionEncoderDecoder():
+class AttentionEncoderDecoderWrapper():
 	def __init__(self, embedding_dim, units, vocabulary_size, start_token, batch_size, max_train_len, max_val_len):
 		self.encoder = CNN_Encoder(embedding_dim)
 		self.decoder = RNN_Decoder(embedding_dim, units, vocabulary_size)

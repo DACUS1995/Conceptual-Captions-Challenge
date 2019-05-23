@@ -340,7 +340,7 @@ class CustomSchedule(tf.keras.optimizers.schedules.LearningRateSchedule):
         return tf.math.rsqrt(self.d_model) * tf.math.minimum(arg1, arg2)
 
 
-class TransformerModel():
+class TransformerWrapper():
     def __init__(self, num_layers, d_model, num_heads, dff,
                 max_len_input, target_vocab_size, dropout_rate, max_train_len, max_val_len,
                  ):
