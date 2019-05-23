@@ -154,6 +154,7 @@ class AttentionDecoderEncoder():
 				dec_input = tf.expand_dims(target[:, i], 1)
 
 				metrics['loss'](current_loss)
+				metrics['acc'](target[:, i], predictions, valid_mask)
 
 		trainable_variables = self.encoder.trainable_variables + self.decoder.trainable_variables
 		gradients = tape.gradient(loss, trainable_variables)
