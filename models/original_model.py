@@ -1,4 +1,6 @@
 import tensorflow as tf
+import numpy as np
+from utils import *
 
 """## Model
 
@@ -93,3 +95,121 @@ class RNN_Decoder(tf.keras.Model):
 
 	def reset_state(self, batch_size):
 		return tf.zeros((batch_size, self.units))
+
+
+class AttentionDecoderEncoder():
+	def __init__(self, embedding_dim, units, vocabulary_size, start_token, batch_size):
+		self.encoder = CNN_Encoder(embedding_dim)
+		self.decoder = RNN_Decoder(embedding_dim, units, vocabulary_size)
+		self.start_token = start_token
+		self.batchsize = batch_size
+
+		self.optimizer = tf.keras.optimizers.Adam()
+		self.loss_object = tf.keras.losses.SparseCategoricalCrossentropy(
+			from_logits=True, reduction='none')
+
+	def get_ckpt_config(self):
+		ckpt = tf.train.Checkpoint(encoder=self.encoder,
+								   decoder=self.decoder,
+								   optimizer=self.optimizer)
+		return ckpt
+
+	def get_valid_mask(self, real):
+		mask = tf.math.logical_not(tf.math.equal(real, 0))
+		return mask
+
+	def loss_function(self, real, pred, mask):
+		loss_ = self.loss_object(real, pred)
+		mask = tf.cast(mask, dtype=loss_.dtype)
+		loss_ *= mask
+		return tf.reduce_mean(loss_)
+
+	@tf.function
+	def train_step(self, img_tensor, target, metrics):
+		loss = 0
+
+		for metric in metrics:
+			metrics[metric].reset_states()
+
+		# initializing the hidden state for each batch
+		# because the captions are not related from image to image
+		hidden = self.decoder.reset_state(batch_size=target.shape[0])
+
+		batch_size = img_tensor.shape[0]
+
+		dec_input = tf.expand_dims(self.start_token * batch_size, 1)
+
+		with tf.GradientTape() as tape:
+			features = self.encoder(img_tensor)
+
+			for i in range(1, target.shape[1]):
+				# passing the features through the decoder
+				predictions, hidden, _ = self.decoder(dec_input, features, hidden)
+
+				valid_mask = self.get_valid_mask(target[:, i])
+				current_loss = self.loss_function(target[:, i], predictions, valid_mask)
+				loss += current_loss
+				# using teacher forcing
+				dec_input = tf.expand_dims(target[:, i], 1)
+
+				metrics['loss'](current_loss)
+
+		trainable_variables = self.encoder.trainable_variables + self.decoder.trainable_variables
+		gradients = tape.gradient(loss, trainable_variables)
+		self.optimizer.apply_gradients(zip(gradients, trainable_variables))
+
+	@tf.function
+	def val_step(self, img_tensor, target, metrics):
+		for metric in metrics:
+			metrics[metric].reset_states()
+
+		loss = 0
+
+		hidden = self.decoder.reset_state(batch_size=target.shape[0])
+		batch_size = img_tensor.shape[0]
+
+		dec_input = tf.expand_dims(self.start_token * batch_size, 1)
+
+		features = self.encoder(img_tensor)
+
+		for i in range(1, target.shape[1]):
+			# passing the features through the decoder
+			predictions, hidden, _ = self.decoder(dec_input, features, hidden)
+
+			valid_mask = self.get_valid_mask(target[:, i])
+			current_loss = self.loss_function(target[:, i], predictions, valid_mask)
+			loss += current_loss
+			# using teacher forcing
+			dec_input = tf.expand_dims(target[:, i], 1)
+
+			metrics['loss'](current_loss)
+
+	def evaluate(self, image, max_seq_length, attention_features_shape, input_resize_dim, tokenizer):
+		attention_plot = np.zeros((max_seq_length, attention_features_shape))
+
+		hidden = self.decoder.reset_state(batch_size=1)
+
+		temp_input = tf.expand_dims(load_image(image, input_resize_dim)[0], 0)
+		img_tensor_val = image_features_extract_model(temp_input)
+		img_tensor_val = tf.reshape(img_tensor_val, (img_tensor_val.shape[0], -1, img_tensor_val.shape[3]))
+
+		features = self.encoder(img_tensor_val)
+
+		dec_input = tf.expand_dims([self.start_token], 0)
+		result = []
+
+		for i in range(max_seq_length):
+			predictions, hidden, attention_weights = self.decoder(dec_input, features, hidden)
+
+			attention_plot[i] = tf.reshape(attention_weights, (-1,)).numpy()
+
+			predicted_id = tf.argmax(predictions[0]).numpy()
+			result.append(tokenizer.index_word[predicted_id])
+
+			if tokenizer.index_word[predicted_id] == '<end>':
+				return result, attention_plot
+
+			dec_input = tf.expand_dims([predicted_id], 0)
+
+		attention_plot = attention_plot[:len(result), :]
+		return result, attention_plot
