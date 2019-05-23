@@ -343,8 +343,7 @@ class CustomSchedule(tf.keras.optimizers.schedules.LearningRateSchedule):
 
 class TransformerWrapper():
     def __init__(self, num_layers, d_model, num_heads, dff,
-                 max_len_input, target_vocab_size, dropout_rate, max_train_len, max_val_len,
-                 ):
+                 max_len_input, target_vocab_size, dropout_rate):
         self.transformer = Transformer(num_layers, d_model, num_heads, dff,
                                        max_len_input, target_vocab_size, dropout_rate)
         learning_rate = CustomSchedule(d_model)
@@ -352,8 +351,6 @@ class TransformerWrapper():
                                                   epsilon=1e-9)
         self.loss_object = tf.keras.losses.SparseCategoricalCrossentropy(
             from_logits=True, reduction='none')
-        self.max_train_len = max_train_len
-        self.max_val_len = max_val_len
 
     def get_ckpt_config(self):
         ckpt = tf.train.Checkpoint(transformer=self.transformer,
