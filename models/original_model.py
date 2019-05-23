@@ -135,9 +135,8 @@ class AttentionDecoderEncoder():
 		# because the captions are not related from image to image
 		hidden = self.decoder.reset_state(self.batch_size)
 
-		batch_size = img_tensor.shape[0]
 
-		dec_input = tf.expand_dims([self.start_token] * batch_size, 1)
+		dec_input = tf.expand_dims([self.start_token] * self.batch_size, 1)
 
 		with tf.GradientTape() as tape:
 			features = self.encoder(img_tensor)
@@ -165,10 +164,9 @@ class AttentionDecoderEncoder():
 
 		loss = 0
 
-		hidden = self.decoder.reset_state(batch_size=target.shape[0])
-		batch_size = img_tensor.shape[0]
+		hidden = self.decoder.reset_state(batch_size=self.batch_size)
 
-		dec_input = tf.expand_dims([self.start_token] * batch_size, 1)
+		dec_input = tf.expand_dims([self.start_token] * self.batch_size, 1)
 
 		features = self.encoder(img_tensor)
 
