@@ -1,6 +1,6 @@
 import zipfile
 import tensorflow as tf
-from matplotlib import plt
+from matplotlib import pyplot as plt
 import numpy as np
 from PIL import Image
 
