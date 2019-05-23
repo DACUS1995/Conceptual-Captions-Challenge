@@ -137,12 +137,10 @@ class AttentionEncoderDecoder():
 
 		dec_input = tf.expand_dims([self.start_token] * self.batch_size, 1)
 
-		print('Max seq len', self.max_train_len)
 		with tf.GradientTape() as tape:
 			features = self.encoder(img_tensor)
 
 			for i in range(1, self.max_train_len):
-				print('El of seq', i)
 				# passing the features through the decoder
 				predictions, hidden, _ = self.decoder(dec_input, features, hidden)
 
@@ -214,3 +212,6 @@ class AttentionEncoderDecoder():
 
 		attention_plot = attention_plot[:len(result), :]
 		return result, attention_plot
+
+	def display_attention(self, image, result, attention):
+		plot_image_attention('image  attention', image, result, attention)
