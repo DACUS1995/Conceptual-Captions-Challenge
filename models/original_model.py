@@ -137,7 +137,7 @@ class AttentionDecoderEncoder():
 
 		batch_size = img_tensor.shape[0]
 
-		dec_input = tf.expand_dims(self.start_token * batch_size, 1)
+		dec_input = tf.expand_dims([self.start_token] * batch_size, 1)
 
 		with tf.GradientTape() as tape:
 			features = self.encoder(img_tensor)
@@ -168,7 +168,7 @@ class AttentionDecoderEncoder():
 		hidden = self.decoder.reset_state(batch_size=target.shape[0])
 		batch_size = img_tensor.shape[0]
 
-		dec_input = tf.expand_dims(self.start_token * batch_size, 1)
+		dec_input = tf.expand_dims([self.start_token] * batch_size, 1)
 
 		features = self.encoder(img_tensor)
 
