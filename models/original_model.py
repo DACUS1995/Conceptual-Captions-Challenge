@@ -184,6 +184,7 @@ class AttentionDecoderEncoder():
 			dec_input = tf.expand_dims(target[:, i], 1)
 
 			metrics['loss'](current_loss)
+			metrics['acc'](target[:, i], predictions, valid_mask)
 
 	def evaluate(self, image, max_seq_length, attention_features_shape, input_resize_dim, tokenizer):
 		attention_plot = np.zeros((max_seq_length, attention_features_shape))
