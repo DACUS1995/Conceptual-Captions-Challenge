@@ -343,9 +343,11 @@ class CustomSchedule(tf.keras.optimizers.schedules.LearningRateSchedule):
 
 class TransformerWrapper():
     def __init__(self, num_layers, d_model, num_heads, dff,
-                 max_len_input, target_vocab_size, dropout_rate):
+                 max_len_input, target_vocab_size, dropout_rate,
+                 use_position_encoding=True, use_encoder_attention=True):
         self.transformer = Transformer(num_layers, d_model, num_heads, dff,
-                                       max_len_input, target_vocab_size, dropout_rate)
+                                       max_len_input, target_vocab_size, dropout_rate,
+                                       use_position_encoding, use_encoder_attention)
         learning_rate = CustomSchedule(d_model)
         self.optimizer = tf.keras.optimizers.Adam(learning_rate, beta_1=0.9, beta_2=0.98,
                                                   epsilon=1e-9)
@@ -389,7 +391,7 @@ class TransformerWrapper():
         tar_inp = tar[:, :-1]
         tar_real = tar[:, 1:]
 
-        enc_padding_mask, combined_mask, dec_padding_mask = self.create_masks(inp, tar_inp)
+        combined_mask = self.create_masks(inp, tar_inp)
 
         mask = self.get_valid_mask(tar_real)
         with tf.GradientTape() as tape:
@@ -414,7 +416,7 @@ class TransformerWrapper():
         tar_inp = tar[:, :-1]
         tar_real = tar[:, 1:]
 
-        enc_padding_mask, combined_mask, dec_padding_mask = self.create_masks(inp, tar_inp)
+        combined_mask = self.create_masks(inp, tar_inp)
 
         mask = self.get_valid_mask(tar_real)
         predictions, _ = self.transformer(inp, tar_inp,
@@ -427,7 +429,7 @@ class TransformerWrapper():
         metrics['loss'](loss)
         metrics['acc'](tar_real, predictions, mask)
 
-    def evaluate(self, image, max_length, tokenizer, input_resize_dim):
+    def evaluate(self, image, max_length, attention_features_shape, input_resize_dim, tokenizer):
         temp_input = tf.expand_dims(load_image(image, input_resize_dim)[0], 0)
         img_tensor_val = image_features_extract_model(temp_input)
         img_tensor_val = tf.reshape(img_tensor_val, (img_tensor_val.shape[0], -1, img_tensor_val.shape[3]))
@@ -438,7 +440,7 @@ class TransformerWrapper():
 
         result = []
         for i in range(max_length):
-            enc_padding_mask, combined_mask, dec_padding_mask = self.create_masks(
+            combined_mask = self.create_masks(
                 encoder_input, output)
             # predictions.shape == (batch_size, seq_len, vocab_size)
             predictions, attention_weights = self.transformer(encoder_input,
@@ -469,8 +471,8 @@ class TransformerWrapper():
         for key, attention in attention.items():
             attention = np.squeeze(attention, axis=1)
             print(key, len(result), attention.shape)
-            if 'block2' in key:
-                plot_multi_head_image_attention(key, image, result, attention)
-                break
-            else:
-                plot_multi_head_text_attention(key, result, attention)
+            if 'block6' in key:
+                if 'block2' in key:
+                    plot_multi_head_image_attention(key, image, result, attention)
+                else:
+                    plot_multi_head_text_attention(key, result, attention)
