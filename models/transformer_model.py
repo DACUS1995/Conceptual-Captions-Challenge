@@ -219,7 +219,7 @@ class CNN_Encoder(tf.keras.Model):
 
 class Encoder(tf.keras.layers.Layer):
     def __init__(self, num_layers, d_model, num_heads, dff, max_len,
-                 rate=0.1, use_position_encoding=True, use_attention=True):
+                 rate=0.1, use_position_encoding=True):
         super(Encoder, self).__init__()
 
         self.d_model = d_model
@@ -233,7 +233,6 @@ class Encoder(tf.keras.layers.Layer):
 
         self.dropout = tf.keras.layers.Dropout(rate)
         self.use_position_encoding = use_position_encoding
-        self.use_attention = use_attention
 
     def call(self, x, training, mask):
 
@@ -249,9 +248,8 @@ class Encoder(tf.keras.layers.Layer):
 
         x = self.dropout(x, training=training)
 
-        if self.use_attention:
-            for i in range(self.num_layers):
-                x = self.enc_layers[i](x, training, mask)
+        for i in range(self.num_layers):
+            x = self.enc_layers[i](x, training, mask)
 
         return x  # (batch_size, input_seq_len, d_model)
 
@@ -296,18 +294,16 @@ class Decoder(tf.keras.layers.Layer):
 
 
 class Transformer(tf.keras.Model):
-    def __init__(self, num_layers, d_model, num_heads, dff, max_len,
+    def __init__(self, num_encoder_layers, num_decoder_layers, d_model, num_heads, dff, max_len,
                  target_vocab_size, rate=0.1, use_position_encoding=True,
-                 use_encoder_attention=True):
+                 ):
         super(Transformer, self).__init__()
-        self.use_encoder_attention = use_encoder_attention
         self.use_position_encoding = use_position_encoding
 
-        self.encoder = Encoder(num_layers, d_model, num_heads, dff,
-                               max_len, rate, use_position_encoding,
-                               use_encoder_attention)
+        self.encoder = Encoder(num_encoder_layers, d_model, num_heads, dff,
+                               max_len, rate, use_position_encoding)
 
-        self.decoder = Decoder(num_layers, d_model, num_heads, dff,
+        self.decoder = Decoder(num_decoder_layers, d_model, num_heads, dff,
                                target_vocab_size, rate)
 
         self.final_layer = tf.keras.layers.Dense(target_vocab_size)
@@ -342,12 +338,12 @@ class CustomSchedule(tf.keras.optimizers.schedules.LearningRateSchedule):
 
 
 class TransformerWrapper():
-    def __init__(self, num_layers, d_model, num_heads, dff,
+    def __init__(self, num_encoder_layers, num_decoder_layers, d_model, num_heads, dff,
                  max_len_input, target_vocab_size, dropout_rate,
-                 use_position_encoding=True, use_encoder_attention=True):
-        self.transformer = Transformer(num_layers, d_model, num_heads, dff,
+                 use_position_encoding=True):
+        self.transformer = Transformer(num_encoder_layers, num_decoder_layers, d_model, num_heads, dff,
                                        max_len_input, target_vocab_size, dropout_rate,
-                                       use_position_encoding, use_encoder_attention)
+                                       use_position_encoding)
         learning_rate = CustomSchedule(d_model)
         self.optimizer = tf.keras.optimizers.Adam(learning_rate, beta_1=0.9, beta_2=0.98,
                                                   epsilon=1e-9)
