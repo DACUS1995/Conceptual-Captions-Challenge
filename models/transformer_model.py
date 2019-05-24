@@ -470,8 +470,7 @@ class TransformerWrapper():
     def display_attention(self, image, result, attention):
         for key, attention in attention.items():
             attention = np.squeeze(attention, axis=1)
-            print(key, len(result), attention.shape)
-            if 'block6' in key:
+            if 'layer6' in key:
                 if 'block2' in key:
                     plot_multi_head_image_attention(key, image, result, attention)
                 else:
