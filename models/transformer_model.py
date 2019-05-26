@@ -379,7 +379,7 @@ class TransformerWrapper():
 
         return combined_mask
 
-    # @tf.function
+    @tf.function
     def train_step(self, inp, tar, metrics):
         for metric in metrics:
             metrics[metric].reset_states()
@@ -397,10 +397,10 @@ class TransformerWrapper():
                                               combined_mask,
                                               None)
             loss = self.loss_function(tar_real, predictions, mask)
-            print('Train step', loss)
 
         gradients = tape.gradient(loss, self.transformer.trainable_variables)
         self.optimizer.apply_gradients(zip(gradients, self.transformer.trainable_variables))
+
         metrics['loss'](loss)
         metrics['acc'](tar_real, predictions, mask)
 
