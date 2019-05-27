@@ -17,6 +17,8 @@ def load_image(image_path, resize_dim):
     img = tf.keras.applications.inception_v3.preprocess_input(img)
     return img, image_path
 
+def save_fig():
+	plt.savefig(str(plt.gcf().number))
 
 def plot_image_attention(title, image, result, attention_plot):
 	temp_image = np.array(Image.open(image))
@@ -36,8 +38,8 @@ def plot_image_attention(title, image, result, attention_plot):
 
 	fig.suptitle(title)
 	#     plt.tight_layout()
-	plt.show()
-
+	# plt.savefig()
+	save_fig()
 
 def plot_multi_head_text_attention(title, result, attention):
 	fig = plt.figure(figsize=(16, 8))
@@ -67,8 +69,8 @@ def plot_multi_head_text_attention(title, result, attention):
 
 	fig.suptitle(title)
 	plt.tight_layout()
-	plt.show()
-
+	# plt.show()
+	save_fig()
 
 def plot_multi_head_image_attention(layer, image, result, attention):
   for head_i, head_attention in enumerate(attention):
